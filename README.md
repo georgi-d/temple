@@ -1,4 +1,4 @@
-Temple [![Build Status](https://travis-ci.org/dymk/temple.png?branch=master)](https://travis-ci.org/dymk/temple)
+Temple [![Build Status](https://travis-ci.org/georgi-d/temple.png?branch=dev)](https://travis-ci.org/georgi-d/temple)
 ======
 Surprisingly Flexable, Compile Time, Zero Overhead, Embedded Template Engine for D
 
@@ -12,12 +12,10 @@ Temple supports passing any number of arbitrary variables to templates, as well 
 nesting and yielding templates within each other, capturing blocks of template code, and optional
 fine-grain filtering of generated text (e.g for escaping generated strings/safe strings).
 
-[Vibe.d](http://vibed.org/) compatible! See the [Vibe.d Usage](#vibed) section.
+This is a fork of https://github.com/dymk/temple.
 
 Temple works with 
- - DMD >= `2.066`
- - LDC >= `0.15-alpha1`
- - GDC >= `4.9.2`
+ - DMD >= `2.072`
 
 And probably more, but that's what it's been officially tested with. 
 

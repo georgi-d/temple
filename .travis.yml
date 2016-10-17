@@ -1,14 +1,12 @@
-language: d
 sudo: false
-
+os:
+  - linux
+  - osx
+language: d
 d:
-  - dmd
-  - ldc
-  - gdc
-
-install:
-  - $DC | head -3
-
-script:
-  - export PATH=$PATH:~/bin/
-  - dub --build=unittest --config=unittest --compiler=$DC -v
+   - dmd-beta
+   - dmd-nightly
+   - ldc-beta
+matrix:
+  allow_failures:
+   - d: ldc-beta

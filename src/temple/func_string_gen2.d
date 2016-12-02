@@ -99,7 +99,6 @@ private struct FuncPart {
  * a temple file.
  */
 package string __temple_gen_temple_func_string(string temple_str,
-                                               string aliases_str,
                                                in string temple_name,
                                                in string filter_ident = "")
 {
@@ -162,14 +161,14 @@ package string __temple_gen_temple_func_string(string temple_str,
 
 	// Generate the function signature, taking into account if it has a
 	// FilterParam to use
-	push_stmt(build_function_head(aliases_str, filter_ident));
+	push_stmt(build_function_head(filter_ident));
 
 	indent();
 	if(filter_ident.length)
 	{
 		push_stmt(`with(%s)`.format(filter_ident));
 	}
-	//push_stmt(`with(__temple_context) {`);
+   push_stmt(`with(__closure) {`);
 	indent();
 
 	// Keeps infinite loops from outright crashing the compiler
@@ -322,7 +321,7 @@ package string __temple_gen_temple_func_string(string temple_str,
 	}
 
 	outdent();
-	//push_stmt("}");
+   push_stmt("}");
 	outdent();
 	push_stmt("}");
 
@@ -332,7 +331,7 @@ package string __temple_gen_temple_func_string(string temple_str,
 
 private:
 
-string build_function_head(string aliases_str, string filter_ident) {
+string build_function_head(string filter_ident) {
 	string ret = "";
 
 	string function_type_params =
@@ -342,8 +341,6 @@ string build_function_head(string aliases_str, string filter_ident) {
 
    ret ~= `void TempleFunc(ref TempleOutputStream sink) {
       `;
-
-      ret ~= aliases_str;
 
 	// This isn't just an overload of __temple_buff_filtered_put because D doesn't allow
 	// overloading of nested functions

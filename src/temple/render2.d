@@ -34,16 +34,28 @@ template localAliases(int i, Args...)
    }
 }
 
-auto compile(string str, Args...)()
+auto compile(string str, C)(C closure) //  if (is (typeof(C) : Closure!Args, Args...))
 {
-	return Context!(str, Args)();
+	return CompiledTemplate!(str, C)(closure);
 }
 
-struct Context(string str, Args...)
+struct Closure(Args...)
 {
+   @disable enum init = 0;
+
    enum __localAliases = localAliases!(0, Args);
 
-   enum __FuncStr = __temple_gen_temple_func_string(str, __localAliases,
+   auto ref opDispatch(string member)()
+    {
+       mixin(__localAliases);
+        return mixin (member);
+    }
+}
+
+struct CompiledTemplate(string str, __Closure)
+{
+   __Closure __closure;
+   enum __FuncStr = __temple_gen_temple_func_string(str,
                                                     "__gdTemplateName",
                                                     "");
    pragma(msg, __FuncStr);
@@ -70,24 +82,25 @@ unittest
 
 	static struct Point { float x, y; void opUnary(string op)() { x++; y++; } }
 
-	int a = void;
+	int a = 15;
 
 	Point b = { x: 2, y: 4 };
 
    enum nested = "NestedBody <%= a %>";
-	auto res = compile!("Some template <%= a %> ", a, b, g);
-	auto res2 = compile!(`
-                       % import std.stdio;
-                       Before
-                       <% foreach (i; 1..20) { %>
-                        Index : <%= i %> : <%= b %>
-                        <% } %>
-                        After
-                        `
-                       , a, b, g);
+	//auto res = compile!("Some template ")(Closure!(a, b, g)());
+   auto res = compile!("Some template <%= __closure.a %> ")(Closure!(a, b, g)());
+	//auto res2 = compile!(`
+                       //% import std.stdio;
+                       //Before
+                       //<% foreach (i; 1..20) { %>
+                        //Index : <%= i %> : <%= b %>
+                        //<% } %>
+                        //After
+                        //`
+                       //, Closure!(a, b, g)());
 
-   auto res3 = compile!(`Nested template: <%= renderStr!("NestedBody")  %> `,
-                        a, b, g);
+   //auto res3 = compile!(`Nested template: <%= renderStr!("NestedBody")  %> `,
+                        //Closure!(a, b, g)());
 	//auto res4 = compile!(`Nested template: <%= renderStr!(nested)  %> `, a, b,
                         //g, nested);
 
@@ -96,9 +109,9 @@ unittest
 
 	res.renderTo(stdout.lockingTextWriter);
    writeln("");
-	res2.renderTo(stdout.lockingTextWriter);
-   writeln("");
+	//res2.renderTo(stdout.lockingTextWriter);
+   //writeln("");
 
-   res3.renderTo(stdout.lockingTextWriter);
-   writeln("");
+   //res3.renderTo(stdout.lockingTextWriter);
+   //writeln("");
 }

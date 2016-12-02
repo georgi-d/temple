@@ -41,16 +41,17 @@ auto compile(string str, Args...)()
 
 struct Context(string str, Args...)
 {
-   mixin(localAliases!(0, Args));
+   enum __localAliases = localAliases!(0, Args);
 
-   enum FuncStr = __temple_gen_temple_func_string(str, "__gdTemplateName",
-                                                          "");
-   pragma(msg, FuncStr);
+   enum __FuncStr = __temple_gen_temple_func_string(str, __localAliases,
+                                                    "__gdTemplateName",
+                                                    "");
+   pragma(msg, __FuncStr);
 
    //void TempleFunc(ref TempleOutputStream sink)
-   mixin(FuncStr);
+   mixin(__FuncStr);
 
-	void render(OR)(OR outputRange)
+	void renderTo(OR)(OR outputRange)
 		//if (isOutputRange!OR)
 	{
       auto tos = TempleOutputStream(outputRange);
@@ -73,6 +74,7 @@ unittest
 
 	Point b = { x: 2, y: 4 };
 
+   enum nested = "NestedBody <%= a %>";
 	auto res = compile!("Some template <%= a %> ", a, b, g);
 	auto res2 = compile!(`
                        % import std.stdio;
@@ -84,25 +86,17 @@ unittest
                         `
                        , a, b, g);
 
-	//foreach (offset; iota(-32, 32, 4))
-	//{
-		//void* base = cast(void*)&res;
-		//auto p = base + offset;
-		//int* ip = cast(int*)p;
-		//float* fp = cast(float*)p;
-
-		//writefln("Base: %s, offeset: %s, p: %s, as int: %s, as float: %s",
-			//base, offset, p, *ip, *fp);
-	//}
+	//auto res3 = compile!(`Nested template: <%= renderStr!(nested)  %> `, a, b,
+                        //g, nested);
 
    writeln("RENDERING:");
 	//writefln("From unittest scope [a] %s: %s | [b] %s: %s", &a, a, &b, b);
 
-	res.render(stdout.lockingTextWriter);
+	res.renderTo(stdout.lockingTextWriter);
    writeln("");
-	res2.render(stdout.lockingTextWriter);
+	res2.renderTo(stdout.lockingTextWriter);
    writeln("");
 
-	//writefln("Global from unittest scope [g] %s: %s", &g, g);
-	//writefln("From unittest scope %s: %s | %s: %s", &a, a, &b, b);
+	//res3.renderTo(stdout.lockingTextWriter);
+   //writeln("");
 }

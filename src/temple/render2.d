@@ -34,29 +34,19 @@ template localAliases(int i, Args...)
    }
 }
 
-auto compile(string str, Args...)()
-{
-	return Context!(str, Args)();
-}
-
-struct Context(string str, Args...)
+void renderTempl(string str, Args...)(ref TempleOutputStream sink)
 {
    enum __localAliases = localAliases!(0, Args);
+   pragma(msg, __localAliases);
+   mixin(__localAliases);
 
-   enum __FuncStr = __temple_gen_temple_func_string(str, __localAliases,
+   enum __FuncStr = __temple_gen_temple_func_string(str,
                                                     "__gdTemplateName",
                                                     "");
    pragma(msg, __FuncStr);
-
-   //void TempleFunc(ref TempleOutputStream sink)
    mixin(__FuncStr);
 
-	void renderTo(OR)(OR outputRange)
-		//if (isOutputRange!OR)
-	{
-      auto tos = TempleOutputStream(outputRange);
-      TempleFunc(tos);
-	}
+   TempleFunc();
 }
 
 __gshared int g = 111;
@@ -74,31 +64,40 @@ unittest
 
 	Point b = { x: 2, y: 4 };
 
-   enum nested = "NestedBody <%= a %>";
-	auto res = compile!("Some template <%= a %> ", a, b, g);
-	auto res2 = compile!(`
-                       % import std.stdio;
-                       Before
-                       <% foreach (i; 1..20) { %>
-                        Index : <%= i %> : <%= b %>
-                        <% } %>
-                        After
-                        `
-                       , a, b, g);
+   auto cout = TempleOutputStream(stdout);
 
-   auto res3 = compile!(`Nested template: <%= renderStr!("NestedBody")  %> `,
-                        a, b, g);
-	//auto res4 = compile!(`Nested template: <%= renderStr!(nested)  %> `, a, b,
-                        //g, nested);
+   enum nested = "NestedBody <%= b %>";
 
    writeln("RENDERING:");
+	//renderTempl!("Some template <%= b %> ", a, b, g)(cout);
+
+   //writeln("");
+   //writeln("");
+   //renderTempl!(`
+                       //% import std.stdio;
+                       //Before
+                       //<% foreach (i; 1..20) { %>
+                        //Index : <%= i %> : <%= b %>
+                        //<% } %>
+                        //After
+                        //`
+                       //, a, b, g)(cout);
+
+   //writeln("");
+   //writeln("");
+
+   //renderTempl!(`Nested template: <%= renderStr!("NestedBody")  %> `,
+                        //a, b, g)(cout);
+
+   //writeln("");
+   //writeln("");
+
+   renderTempl!(`Nested template: <% renderTempl!(nested, b)(sink);  %> `, a, b,
+                        g, nested)(cout);
+
+   writeln("");
+   writeln("");
+
 	//writefln("From unittest scope [a] %s: %s | [b] %s: %s", &a, a, &b, b);
 
-	res.renderTo(stdout.lockingTextWriter);
-   writeln("");
-	res2.renderTo(stdout.lockingTextWriter);
-   writeln("");
-
-   res3.renderTo(stdout.lockingTextWriter);
-   writeln("");
 }

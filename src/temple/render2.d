@@ -86,7 +86,9 @@ unittest
                         `
                        , a, b, g);
 
-	//auto res3 = compile!(`Nested template: <%= renderStr!(nested)  %> `, a, b,
+   auto res3 = compile!(`Nested template: <%= renderStr!("NestedBody")  %> `,
+                        a, b, g);
+	//auto res4 = compile!(`Nested template: <%= renderStr!(nested)  %> `, a, b,
                         //g, nested);
 
    writeln("RENDERING:");
@@ -97,6 +99,6 @@ unittest
 	res2.renderTo(stdout.lockingTextWriter);
    writeln("");
 
-	//res3.renderTo(stdout.lockingTextWriter);
-   //writeln("");
+   res3.renderTo(stdout.lockingTextWriter);
+   writeln("");
 }

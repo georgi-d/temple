@@ -95,6 +95,9 @@ unittest
    renderTempl!(`Nested template: <% renderTempl!(nested, b)(sink);  %> `, a, b,
                         g, nested)(cout);
 
+   renderTempl!(`Nested template: <%!(nested, b) %> `, a, b,
+                        g, nested)(cout);
+
    writeln("");
    writeln("");
 

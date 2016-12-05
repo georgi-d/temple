@@ -85,6 +85,7 @@ private struct FuncPart {
 		StrLit, // String literal appended to the buffer
 		Expr,   // Runtime computed expression appended to the buffer
 		Stmt,   // Any arbitrary statement/declaration making up the function
+		Nest,   // Nesting of another template
 		Line,   // #line directive
 	}
 
@@ -120,6 +121,10 @@ package string __temple_gen_temple_func_string(string temple_str,
 	/* ----- func_parts appending functions ----- */
 	void push_expr(string expr) {
 		func_parts ~= FuncPart(FuncPart.Type.Expr, expr, indent_level);
+	}
+
+	void push_nest(string expr) {
+		func_parts ~= FuncPart(FuncPart.Type.Nest, expr, indent_level);
 	}
 
 	void push_stmt(string stmt)
@@ -276,6 +281,16 @@ package string __temple_gen_temple_func_string(string temple_str,
 						}
 					}
 				}
+            else if (oDelim.isNest())
+            {
+               assert(!(is_block_start || is_block_end));
+               push_nest(inbetween_delims);
+
+               if(cDelim == CloseDelim.CloseShort)
+               {
+                  push_stmt(`__temple_buff_filtered_put("\n");`);
+               }
+            }
 				else
 				{
 					// It's just raw code, push it into the function body
@@ -452,6 +467,10 @@ string buildFromParts(in FuncPart[] parts) {
 
 			case Expr:
 				func_str ~= "__temple_put_expr(" ~ part.value.strip ~ ");\n";
+				break;
+
+			case Nest:
+				func_str ~= "renderTempl!" ~ part.value.strip ~ "(sink);\n";
 				break;
 
 			case StrLit:

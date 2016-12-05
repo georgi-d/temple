@@ -34,8 +34,10 @@ enum Delim
 {
 	OpenShort,
 	OpenShortStr,
+	OpenShortNest,
 	Open,
 	OpenStr,
+	OpenNest,
 	CloseShort,
 	Close
 }
@@ -48,7 +50,9 @@ enum OpenDelim  : Delim
 	OpenShort       = Delim.OpenShort,
 	Open            = Delim.Open,
 	OpenShortStr    = Delim.OpenShortStr,
-	OpenStr         = Delim.OpenStr
+	OpenShortNest    = Delim.OpenShortNest,
+	OpenStr         = Delim.OpenStr,
+	OpenNest         = Delim.OpenNest
 }
 enum OpenDelims = [EnumMembers!OpenDelim];
 
@@ -66,8 +70,10 @@ enum OpenToClose =
 [
 	OpenDelim.OpenShort    : CloseDelim.CloseShort,
 	OpenDelim.OpenShortStr : CloseDelim.CloseShort,
+	OpenDelim.OpenShortNest : CloseDelim.CloseShort,
 	OpenDelim.Open         : CloseDelim.Close,
-	OpenDelim.OpenStr      : CloseDelim.Close
+	OpenDelim.OpenStr      : CloseDelim.Close,
+	OpenDelim.OpenNest      : CloseDelim.Close
 ];
 
 string toString(in Delim d)
@@ -76,8 +82,10 @@ string toString(in Delim d)
 	{
 		case OpenShort:     return "%";
 		case OpenShortStr:  return "%=";
+		case OpenShortNest:  return "%!";
 		case Open:          return "<%";
 		case OpenStr:       return "<%=";
+		case OpenNest:       return "<%!";
 		case CloseShort:    return "\n";
 		case Close:         return "%>";
 	}
@@ -90,6 +98,7 @@ bool isShort(in Delim d)
 	switch(d) with(Delim)
 	{
 		case OpenShortStr:
+		case OpenShortNest:
 		case OpenShort   : return true;
 		default: return false;
 	}
@@ -97,6 +106,7 @@ bool isShort(in Delim d)
 
 unittest {
 	static assert(Delim.OpenShort.isShort() == true);
+	static assert(Delim.OpenShortNest.isShort() == true);
 	static assert(Delim.Close.isShort() == false);
 }
 
@@ -116,4 +126,23 @@ unittest
 {
 	static assert(Delim.OpenShort.isStr() == false);
 	static assert(Delim.OpenShortStr.isStr() == true);
+}
+
+/// Is the contents of the delimer evaluated and appended to
+/// the template buffer? E.g. the content within `<%= %>` delims
+bool isNest(in Delim d)
+{
+	switch(d) with(Delim)
+	{
+		case OpenShortNest:
+		case OpenNest     : return true;
+		default: return false;
+	}
+}
+
+unittest
+{
+	static assert(Delim.OpenShort.isNest() == false);
+	static assert(Delim.OpenShortStr.isNest() == false);
+	static assert(Delim.OpenShortNest.isNest() == true);
 }
